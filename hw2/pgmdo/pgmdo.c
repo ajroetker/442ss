@@ -36,45 +36,104 @@ void eatLine(FILE *f) {
   while (fgetc(f) != '\n');
 }
 
+void invertImage(float *img, int width, int height){
+  int r, c, i;
+  // for each image row
+  for (r=0; r<height; r++) {
+    // for each image column
+    for (c=0; c<width; c++) {
+      i = r * width + c;
+      img[i] = (1-img[i]);
+    }
+  }
+}
+
+void blurImage(float *img, float *omg, int width, int height){
+  int r, c, i;
+  // for each image row
+  for (r=0; r<height; r++) {
+    // for each image column
+    for (c=0; c<width; c++) {
+      i = r * width + c;
+      if ((i % width) == 0) {
+        if (i < width){
+          omg[i] = (4*img[i] + 2*img[i+1]  + 2*img[i+r])/8;
+        }
+        else if (i >= (width * (height - 1))){
+          omg[i] = (4*img[i] + 2*img[i+1]  + 2*img[i-r])/8;
+        } else {
+          omg[i] = (5*img[i] + img[i+1] + img[i-r] + img[i+r])/8;
+        }
+      }
+      else if ((i % (width - 1)) == 0){
+        if (i < width){
+          omg[i] = (4*img[i] + 2*img[i-1]  + 2*img[i+r])/8;
+        }
+        else if (i >= (width * (height - 1))){
+          omg[i] = (4*img[i] + 2*img[i-1]  + 2*img[i-r])/8;
+        } else {
+          omg[i] = (5*img[i] + img[i-1] + img[i-r] + img[i+r])/8;
+        }
+      }
+      else if (i < width){
+        omg[i] = (5*img[i] + img[i+1] + img[i-1] + img[i+r])/8;
+      }
+      else if (i >= (width * (height - 1))){
+        omg[i] = (5*img[i] + img[i+1] + img[i-1] + img[i-r])/8;
+      }
+      else{
+        omg[i] = (4*img[i] + img[i+1] + img[i-1] + img[i-r] + img[i+r])/8;
+      }
+    }
+  }
+}
+
 // echoASCII
 //
 // Read the a PGM file opened as "inf" and write a text file
 // of characters to "outf", ones whose brightness suggest the
 // levels of grey specified by the original image.
 //
-void echoASCII(FILE *inf, FILE *outf) {
+void echoASCII(float *img, FILE *outf, int width, int height) {
+  int r, c;
+  // for each image row
+  for (r=0; r<height; r++) {
+    // for each image column
+    for (c=0; c<width; c++) {
+      // output a pixel character to make ASCII art
+      outASCII(outf,img[r*width+c]);
+    }
+    // end the ASCII text line
+    fprintf(outf,"\n");
+  }
+}
 
-  int width, height;
+float *readImage(FILE *inf,  int *width, int *height) {
+
   int max;
   int pixel;
   int r,c;
+  float *img=(float *)malloc(sizeof(float));
 
   // Read the PGM file's header info,
                              // for example:
 
   eatLine(inf);                // P5 (or P2)
   eatLine(inf);                // # this was produced by some software
-  fscanf(inf, "%d", &width);   // 9 5
-  fscanf(inf, "%d", &height);
+  fscanf(inf, "%d", width);   // 9 5
+  fscanf(inf, "%d", height);
   fscanf(inf, "%d", &max);     // 255
-
+  img=(float *)malloc(sizeof(float));
   // for each image row
-  for (r=0; r<height; r++) {
+  for (r=0; r<(*height); r++) {
     // for each image column
-    for (c=0; c<width; c++) {
-
+    for (c=0; c<(*width); c++) {
       // read a PGM pixel grey value (from 0 to max)
       fscanf(inf,"%d", &pixel);
-                             // 0 10 30 80 120 135 225 245 255 
-                             // (4 more rows)
-
-      // output a pixel character to make ASCII art
-      outASCII(outf,(float)pixel/(float)max);
+      img[(r*(*width)) + c] = (float)pixel/(float)max;
     }
-
-    // end the ASCII text line 
-    fprintf(outf,"\n");
   }
+  return img;
 }
 
 // usage
@@ -90,7 +149,7 @@ void usage(char *cmd) {
 }
 
 // main
-// 
+//
 // This program accepts three arguments: a processing option
 // ("blur", "invert", or "ascii"), a PGM file name for input,
 // and a text file name for output.  It reads the PGM file and
@@ -104,9 +163,11 @@ int main(int argc, char **argv) {
 
   // input and output file "handles"
   FILE *inf, *outf;
+  float *img, *omg;
+  int width, height;
 
   if (argc < 4) {
-    
+
     // whoops! not enough arguments
     fprintf(stderr,"Error: not enough arguments!\n");
     usage(argv[0]);
@@ -127,34 +188,19 @@ int main(int argc, char **argv) {
       fprintf(stderr,"Error: can't open file '%s' for writing.\n",argv[3]);
       return -1;
     }
-
+    img = readImage(inf,&width,&height);
+    omg = img;
     if (strcmp(argv[1],"--blur") == 0) {
-
-      fprintf(stderr, "***BLUR NOT SUPPORTED YET!!!***\n");
-      //
-      // write the code that performs a blur of the image
-      //  
-
+      blurImage(img, omg, width, height);
     } else if (strcmp(argv[1],"--invert") == 0) {
-
-      fprintf(stderr, "***INVERT NOT SUPPORTED YET!!!***\n");
-      //
-      // write the code that inverts the image
-      //  
-
+      invertImage(img, width, height);
     } else if (strcmp(argv[1],"--ascii") == 0) {
-
-      echoASCII(inf,outf);
-      //
-      // change this so that it is given an image array and
-      // the outf
-      //
-
+      echoASCII(img,outf, width, height);
     } else {
 
       fprintf(stderr,"Error: unrecognized option '%s.'\n",argv[1]);
       usage(argv[0]);
-      
+
       // return FAIL
       return -1;
     }
