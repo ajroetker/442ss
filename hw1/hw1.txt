@@ -1,0 +1,159 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int get_guess(int x, int y){
+    //Assumes x < y
+    //This function gets a guess in the correct range
+    int value;
+    printf("What number am I thinking? ");
+    do {
+        scanf("%d", &value);
+        if (value < x || value > y) {
+            printf("I'm sorry. That is not between %d and %d.\n", x, y);
+            printf("Please do enter an integer between %d and %d: ", x, y);
+        }
+    } while (value < x || value > y);
+    return value;
+}
+
+int main(){
+    int number;
+    int lives;
+    int guess;
+    int won;
+
+    srand(time(NULL));
+    number = rand() % 100 + 1;
+    //Keep a count of the attempts the player has
+    lives = 6;
+    //Did the player win?
+    won = 0;
+
+    printf("I'm thinking of a number between 1 and 100...\n");
+    //Play high low until the player runs out of lives or wins
+    do {
+        guess = get_guess(1, 100);
+        lives--;
+        if (guess > number) {
+            printf("Your guess was too high!\n");
+            printf("You have %d guesses left.\n", lives);
+        }
+        else if (guess < number) {
+            printf("Your guess was too low!\n");
+            printf("You have %d guesses left.\n", lives);
+        } else {
+            printf("Congratulations! Your guess was correct!\n");
+            won = -1;
+        }
+    } while (!won && lives > 0);
+    if (!won) {
+        printf("Sorry your guesses were unsuccessful.\n");
+    }
+    printf("Thanks for playing high low!\n");
+}
+#include <stdio.h>
+
+void print_n_times(char *x, int n) {
+    // Print a string n times
+    int i;
+    for (i = 0; i < n; i++) {
+        printf("%s", x);
+    }
+}
+
+void make_graph(int rows) {
+    int spaces;
+    for (spaces = rows; spaces >= 0; spaces--) {
+        print_n_times(" ", spaces + 1);
+        print_n_times("* ", rows-spaces);
+        printf("\n");
+    }
+}
+
+int main(){
+    int rows;
+
+    printf("Enter the number of rows: ");
+    scanf("%d", &rows);
+    make_graph(rows);
+    printf("\n");
+}
+#include <stdio.h>
+#include <math.h>
+
+void print_n_times(char *x, int n) {
+    // Print a string n times
+    int i;
+    for (i = 0; i < n; i++) {
+        printf("%s", x);
+    }
+}
+
+
+double powerOf(double x, int n) {
+    double pow;
+    int i;
+    pow = 1;
+    // code that computes pow = x to the nth power here
+    for (i = 0; i < n; i++) {
+        pow = x * pow;
+    }
+    return pow;
+}
+
+void make_row(double point) {
+    // Given a point to be graphed for some row
+    // scale that point and put the correct number
+    // of spaces around it.
+    int image;
+    image = (int)round(20 * point);
+
+    if (image < 0) {
+        print_n_times(" ", 20 + image);
+        printf("*");
+        print_n_times(" ", 0 - image - 1);
+        printf("|");
+        print_n_times(" ", 20);
+        printf("\n");
+    }
+    else if (image > 0) {
+        print_n_times(" ", 20);
+        printf("|");
+        print_n_times(" ", image - 1);
+        printf("*");
+        print_n_times(" ", 20 - image);
+        printf("\n");
+    }
+    else {
+        print_n_times(" ", 20);
+        printf("*");
+        print_n_times(" ", 20);
+        printf("\n");
+    }
+}
+
+void make_graph(int n) {
+    // Make a graph of sin(x)^n between -pi and pi
+    // range_band is the x distance between points we calculate
+    // the intended graph is 41 chars wide and 21 chars long.
+    double point;
+    double neg_pi;
+    double range_band;
+    int i;
+    neg_pi = -3.14159265359;
+    range_band = 3.14159265359/10.5;
+
+    printf("Here's the graph of sin(x)^%d between -pi and pi:\n", n);
+    for (i = 1; i <= 21; i++) {
+        point = powerOf(sin(neg_pi + (range_band * i)), n);
+        make_row(point);
+    }
+}
+
+int main() {
+    int power;
+    printf("Enter the power of sine which you wish to graph: ");
+    scanf("%d", &power);
+    make_graph(power);
+}
