@@ -69,9 +69,9 @@ char *production(char A, char **G, int lines) {
   for (start = 0; start < lines && G[start][0] != A; start++);
   // find the line following the A-productions
   for (end=start; end<lines && G[end][0] == A; end++);
-  // pick a line in that range 
+  // pick a line in that range
   p = rand() % (end - start) + start;
-  // return its right-hand side 
+  // return its right-hand side
   return substring(G[p],3,length(G[p]));
 }
 
@@ -93,15 +93,24 @@ int hasUpper(char *s) {
 // replaceAll
 //
 // Given a string s of lower- and uppercase letters, replace
-// all the uppercase letters with thr right-hand sides of 
+// all the uppercase letters with thr right-hand sides of
 // one of their productions in G (using "production" procedure
-// above).  
+// above).
 //
 char *replaceAll(char *s, char **G, int n) {
-  //
-  // *** YOUR CODE GOES HERE, use your append ***
-  //
-  return NULL;
+  int i;
+  char *front, *middle, *back;
+  int len = length(s);
+  for(i = 0; i < len; i++){
+    if (isupper(s[i])) {
+      front = substring(s, 0, i - 1);
+      middle = production(s[i], G, n);
+      back = replaceAll(substring(s, i + 1, len-1), G, n);
+      s = append(append(front, middle), back);
+      break;
+    }
+  }
+  return s;
 }
 
 int main(int argc, char **argv) {
@@ -115,6 +124,7 @@ int main(int argc, char **argv) {
   srand(time(NULL));
   if (argc < 3) {
 
+    printf("Too few arguments!\n");
     return -1;
 
   } else {
