@@ -13,7 +13,7 @@
 // corresponds in brightness to the value (from 0.0
 // to 1.0) given.
 //
-void outPRM(FILE *f, float* img, int width, int height) {
+void outPGM(FILE *f, float* img, int width, int height) {
   int r, c;
   // for each image row
   fprintf(f, "P2\n# CREATOR: Reed College... Hell Yeah!\n60\n68\n255");
@@ -210,8 +210,11 @@ int main(int argc, char **argv) {
     omg = img;
     if (strcmp(argv[1],"--blur") == 0) {
       blurImage(img, omg, width, height);
+      outPGM(outf, img, width, height);
     } else if (strcmp(argv[1],"--invert") == 0) {
+      printf("Here!");
       invertImage(img, width, height);
+      outPGM(outf, img, width, height);
     } else if (strcmp(argv[1],"--ascii") == 0) {
       echoASCII(img,outf, width, height);
     } else {
@@ -231,4 +234,3 @@ int main(int argc, char **argv) {
     return 0;
   }
 }
-  
