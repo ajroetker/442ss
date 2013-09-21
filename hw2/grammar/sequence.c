@@ -31,8 +31,22 @@ int length(char *str) {
 }
 
 char *append(char *src1, char *src2) {
-  // *** YOUR CODE GOES HERE ***
-  return NULL;
+  int i=0, j=0;
+  int len = length(src1)+length(src2);
+  char *out = new(len);
+  while (src1[i] != '\000'){
+    out[i] = src1[i];
+    i++;
+  }
+  while (src2[j] != '\000'){
+    out[i] = src2[j];
+    j++;
+    i++;
+  }
+  out[len] = '\000';
+  free(src1);
+  free(src2);
+  return out;
 }
 
 char *substring(char *src, int start, int end) {
@@ -41,7 +55,7 @@ char *substring(char *src, int start, int end) {
   char *dst = new(len);
 
   for (i=start; i<=end; i++) {
-    dst[i-start] = src[i];    
+    dst[i-start] = src[i];
   }
   dst[len] = '\000';
 
