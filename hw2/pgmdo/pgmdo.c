@@ -7,6 +7,24 @@
 // Simple portable grey map (PGM) image processor.
 //
 
+// outPGM
+//
+// Output a character to the given file, one that
+// corresponds in brightness to the value (from 0.0
+// to 1.0) given.
+//
+void outPRM(FILE *f, float* img, int width, int height) {
+  int r, c;
+  // for each image row
+  fprintf(f, "P2\n# CREATOR: Reed College... Hell Yeah!\n60\n68\n255");
+  for (r=0; r<height; r++) {
+    // for each image column
+    for (c=0; c<width; c++) {
+      fprintf(f, "%d", (int)img[r*width+c]*255);
+      fprintf(f,"\n");
+    }
+  }
+}
 
 // outASCII
 //
