@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 //
 // MATH 442: pgmdo
@@ -13,14 +14,14 @@
 // corresponds in brightness to the value (from 0.0
 // to 1.0) given.
 //
-void outPRM(FILE *f, float* img, int width, int height) {
+void outPGM(FILE *f, float* img, int width, int height) {
   int r, c;
   // for each image row
-  fprintf(f, "P2\n# CREATOR: Reed College... Hell Yeah!\n60\n68\n255");
+  fprintf(f, "P2\n# CREATOR: Reed College... Hell Yeah!\n%d\n%d\n255\n", width, height);
   for (r=0; r<height; r++) {
     // for each image column
     for (c=0; c<width; c++) {
-      fprintf(f, "%d", (int)img[r*width+c]*255);
+      fprintf(f, "%d", (int)round(img[r*width+c]*255));
       fprintf(f,"\n");
     }
   }
@@ -209,9 +210,15 @@ int main(int argc, char **argv) {
     img = readImage(inf,&width,&height);
     omg = img;
     if (strcmp(argv[1],"--blur") == 0) {
+      printf("Blurring image...");
       blurImage(img, omg, width, height);
+      outPGM(outf, img, width, height);
+      printf("Done!\n");
     } else if (strcmp(argv[1],"--invert") == 0) {
+      printf("Inverting image...");
       invertImage(img, width, height);
+      outPGM(outf, img, width, height);
+      printf("Done!\n");
     } else if (strcmp(argv[1],"--ascii") == 0) {
       echoASCII(img,outf, width, height);
     } else {
@@ -231,4 +238,3 @@ int main(int argc, char **argv) {
     return 0;
   }
 }
-  
