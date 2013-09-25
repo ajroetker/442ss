@@ -1,0 +1,19 @@
+./grammar test.g aSSSb
+aSSSb
+=>aababaSbb
+=>aababaSSbb
+=>aababaabSSbb
+=>aababaabSSabbb
+=>aababaababaSbabbb
+=>aababaababaSSbabbb
+=>aababaababaabaSbbabbb
+=>aababaababaabaaSbbbabbb
+=>aababaababaabaaaSbbbbabbb
+=>aababaababaabaaaabbbbbabbb
+./grammar test.g aSb
+aSb
+=>aSSb
+=>aabSSb
+=>aabababb
+./grammar test.g ab
+ab
