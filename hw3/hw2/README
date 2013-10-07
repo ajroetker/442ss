@@ -1,0 +1,162 @@
+
+MATH 442 Homework 2
+
+This folder contains the folders for three C programs that work 
+with C arrays to represent their data.  These are as follows
+
+
+EXERCISE 1. PGMDO
+
+This program reads an image file in Portable Gray Map (PGM) format.
+The user of the program can do one of three things, each option
+producing a text file as output.
+
+  A) ./pgmdo --ascii input.pgm output.txt
+
+  This produces a text file that is an "ASCII art" representation
+  of the given image file, one that can be examined easily within
+  the terminal.  
+
+  B) ./pgmdo --blur input.pgm output.pgm
+
+  This produces a PGM file that is the "digital negative" of the
+  given PGM image.  In other words: light pixels are made dark
+  and dark pixels are made light.  
+
+  C) ./pgmdo --blur input.pgm output.pgm
+
+  This produces a PGM file that is a blurred version of the
+  given PGM image.  Each output pixel's grey value is an 
+  average of its corresponding input pixel, and the values of
+  its four neighbors.  A weighted average is used.  The center
+  pixel provides half the weight and the four compass neighbors
+  (N,S,E,W) are given equal weight summing to the other half
+  of the blurred output grey value.
+
+
+ASSIGNMENT: finish the code so that options B and C work (only 
+option A works right now).  To do this, consider writing the 
+following functions:
+
+   img = readImage(f,&w,&h) -- read a file and return an array of grey values
+   invertImage(img,w,h) -- invert values in an array of grey values
+   blurImage(img,omg,w,h) -- compute blur of an array of grey values
+
+In the first, a (FILE*) handle is given. The image file's details are
+processed.  An array pointer of grey values between 0.0 and 1.0 of
+type (float *) is returned, and the width and height pointers' contents 
+get set to the width and height of the image.
+
+In the second, the image (float *) is modified by the procedure in place.
+
+In the third, two image arrays are given, one being the source image 
+array and the second array being the space for the computed blurred 
+image. 
+     
+To compile use: gcc -o pgmdo pgmdo.c
+
+EXERCISE 2. GRAMMMAR
+  
+This program reads a text file that gives description of a context-free 
+grammar.  The file consists of a collection of productions. The program
+derives a random string according to the grammar using a command line-
+specified start symbol.  For example, the command
+
+  grammar test.g S
+
+would produce a sequence of "a"s and "b"s according to the balanced
+parentheses grammar
+
+  S->SS
+  S->aSb
+  S->
+
+In any specified grammar, the nonterminal symbols are capital letters and
+the terminal symbols are lower-case letters.  Every nonterminal symbol has
+to have at least one production line and all of its production lines must
+be consecutive in the file.  The top line of the file gives the number of 
+production lines.
+
+The grammar is represented internally by the program as an array of 
+production line strings (it is of type (char **)).  So, for the above,
+the grammar array g would be 
+
+   g[0] = "S->SS"
+   g[1] = "S->aSb"
+   g[2] = "S->"
+
+The size of this array is passed around to all the functions that
+operate on it.
+
+ASSIGNMENT: the code is incomplete.  Write the code for "replaceAll" in
+grammar.c and the code for "append" in sequence.c.  
+
+   replaceAll: this function takes a derivation string x and a grammar,
+               and it builds a new derivation string that results from
+               replacing all the nonterminals in x with right-hand sides
+               of appropriate productions in the grammar.  For example,
+               the string "aaaSbbSb" would have two substitutions applied,
+	       one to each S, possibly yielding the string "aaaSSbbaSbb"
+
+               This function should rely on the function "production"
+               (already defined) and the function "append" described
+               below.
+
+               This should be written inside grammar.c
+
+   append: this function takes two strings an returns a new string
+           that is the result of their concatenation. 
+
+           This should be written inside sequence.c
+
+   Compile these with the command: gcc -o grammar grammar.c sequence.c
+
+
+EXERCISE 3. GRAPH
+
+This program reads a description of a graph and runs a depth-first search
+(DFS) on it.  It then outputs the edges of the DFS tree as found by the
+search.  
+
+The file format for a graph is just a list of vertex degrees (the
+number of neighbors) along with a list of neighbors, one line for each
+vertex in the graph.  The top line gives the number of vertices and
+the vertices are numbered from 0 upwards.  
+
+The program's internal representation of the graph is just an array
+of integer arrays, one array for each vertex.  Each vertex array is 
+just the sequence of its neighbors, terminated by a -1.
+
+The depth-first search is started at vertex 0 and continues until all
+vertices reachable from 0 have been touched. 
+
+The search algorithm relies on a separate pushdown stack data structure.
+This is just an array of integers holding the elements that have been 
+pushed onto the stack.  For example, a stack with 5 at the top, and two
+more values 7 and 1 below would have the contents
+
+  S[0] = 1;
+  S[1] = 7;
+  S[2] = 5;
+
+The memory for S happens to hold the number of elements stored in the
+stack (in this case 3) in array location S[-1].  A "push" increases
+this array value, and a "pop" decreases it.
+
+The code for all this is given in the file stack.c.
+
+ASSIGNMENT: Write instead a breadth-first search algorithm, one that
+uses a queue instead of a stack to drive the search.  Instead of 
+reporting the edges of the breadth-first search tree, it should instead
+report the distances of each vertex from vertex 0, that is, the minimum
+number of hops needed to reach a vertex from vertex 0.  Unreachable
+vertices should be given a distance of -1.
+
+You should make a separate header and C source file for your queue
+implementation.  Have the program take as argument which search should
+be performed.
+
+To compile the given source: gcc -o graph graph.c stack.c
+
+Compile your source with: gcc -o graph graph.c stack.c queue.c
+

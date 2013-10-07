@@ -3,8 +3,9 @@
 #define _QUEUE_H
 
 typedef struct _queue {
-    node *head;
-    node *tail;
+    int * elements;
+    int tail;
+    int front;
     int size;
 } queue;
 
