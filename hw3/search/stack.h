@@ -1,12 +1,18 @@
 #ifndef _STACK_H
 #define _STACK_H
 
-int *newStack(int size);
-int isEmpty(int *S);
-int size(int *S);
-void push(int x, int *S);
-int pop(int *S);
-int top(int *S);
-void output(int *S);
+typedef struct _stack {
+    int size;
+    int capacity;
+    int *elements;
+} stack;
+
+stack *newStack(int capacity);
+int isEmpty(stack *S);
+int size(stack *S);
+void push(int x, stack *S);
+int pop(stack *S);
+int top(stack *S);
+void output(stack *S);
 
 #endif

@@ -3,7 +3,7 @@
 #include "stack.h"
 
 // newStack
-//
+// 
 // Creates and returns a new stack with the 
 // given capacity. Its representation is an
 // array of integers, potential elements to
@@ -11,44 +11,42 @@
 // at -1 holds the number of elements stored
 // on the stack, initially 0.
 //
-stack *newStack(int capacity) {
-  stack *S = (stack *)malloc(sizeof(stack));
-  S->capacity = capacity;
-  S->size = 0;
-  S->elements = (int *)malloc((capacity)*sizeof(int));
-  return S;  // start at first element, 0th holds size
+int *newStack(int capacity) {
+  int *S = (int *)malloc((capacity+1)*sizeof(int));
+  S[0] = 0;
+  return &S[1];  // start at first element, 0th holds size
 }
 
 // isEmpty
 //
 // Checks whether the stack is empty.
-int isEmpty(stack *S) {
+int isEmpty(int *S) {
   return (size(S) == 0);
 }
 
 // size
 //
 // Returns the number of elements on the stack.
-int size(stack *S) {
-  return S->size;
+int size(int *S) {
+  return S[-1];
 }
-
+ 
 // increase, decrease
 //
 // Two stack size helper functions.
-void decrease(stack *S) {
-  S->size--;
+void decrease(int *S) {
+  S[-1]--;
 }
-void increase(stack *S) {
-  S->size++;
+void increase(int *S) {
+  S[-1]++;
 }
-
+ 
 // push
 //
 // Pushes x onto stack S.
 //
-void push(int x, stack *S) {
-  S->elements[size(S)] = x;
+void push(int x, int *S) {
+  S[size(S)] = x;
   increase(S);
 }
 
@@ -58,28 +56,28 @@ void push(int x, stack *S) {
 // Pops top value off of stack S,
 // returns it.
 //
-int pop(stack *S) {
+int pop(int *S) {
   decrease(S);
-  return S->elements[size(S)];
+  return S[size(S)];
 }
 
 // top
 //
 // Returns top value of stack S.
 //
-int top(stack *S) {
-  return S->elements[size(S)-1];
+int top(int *S) {
+  return S[size(S)-1];
 }
 
-void output(stack *S) {
+void output(int *S) {
   int i;
   if (isEmpty(S)) {
     printf("[ ]");
   } else {
     printf("[");
     for (i=0; i<size(S)-1; i++) {
-      printf("%d ",S->elements[i]);
+      printf("%d ",S[i]);
     }
-    printf("(%d)]\n",top(S));
+    printf("(%d)\n",top(S));
   }
 }

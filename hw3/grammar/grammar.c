@@ -9,6 +9,10 @@
 // Grammar production engine.
 //
 
+typedef struct _grammar {
+  char ** productions;
+} grammar;
+
 // readLine
 //
 // Reads a line of text from a file, places characters
@@ -38,20 +42,20 @@ void readLine(FILE *f, char *line) {
 //
 // Returns an array of the production line strings.
 //
-char **readGrammar(FILE *f, int *lines) {
+grammar * readGrammar(FILE *f, int *lines) {
   int l;
   char line[80];
-  char **grammar;
+  grammar = (grammar *)malloc(sizeof(gammar));
+  grammar->productions = (char **)malloc((*lines)*sizeof(char *));
 
   // read the number of lines
   fscanf(f,"%d\n",lines);
   // create the array of productions
-  grammar = (char **)malloc((*lines)*sizeof(char *));
 
   // read each production line
   for (l = 0; l < (*lines); l++) {
     readLine(f,line);
-    grammar[l] = copy(line);
+    grammar->productions[l] = copy(line);
   }
 
   return grammar;
@@ -62,17 +66,17 @@ char **readGrammar(FILE *f, int *lines) {
 // Chooses a random production from an array of productions
 // given by G, those whose left-hand side is the character A.
 //
-char *production(char A, char **G, int lines) {
+char *production(char A, grammar *G, int lines) {
   int start, end;
   int p;
   // find the starting line of A-productions
-  for (start = 0; start < lines && G[start][0] != A; start++);
+  for (start = 0; start < lines && G->productions[start][0] != A; start++);
   // find the line following the A-productions
-  for (end=start; end<lines && G[end][0] == A; end++);
+  for (end=start; end<lines && G->productions[end][0] == A; end++);
   // pick a line in that range
   p = rand() % (end - start) + start;
   // return its right-hand side
-  return substring(G[p],3,length(G[p]));
+  return substring(G->productions[p],3,length(G->productions[p]));
 }
 
 // hasUpper
@@ -97,7 +101,7 @@ int hasUpper(char *s) {
 // one of their productions in G (using "production" procedure
 // above).
 //
-char *replaceAll(char *s, char **G, int n) {
+char *replaceAll(char *s, grammar *G, int n) {
   int i;
   char *front, *middle, *back;
   int len = length(s);
@@ -116,7 +120,7 @@ char *replaceAll(char *s, char **G, int n) {
 int main(int argc, char **argv) {
 
   FILE *gf;
-  char **G;
+  grammar *G;
   char *x;
   int notDone;
   int n;

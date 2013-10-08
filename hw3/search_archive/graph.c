@@ -112,7 +112,7 @@ int *bfs(int seed, int **G, int n) {
   }
 
   // initialize DFS stack with seed vertex s
-  Q = newQueue(n);
+  Q = newQueue();
   enqueue(seed,Q);
   dist[seed] = 0;
   /*

@@ -12,12 +12,11 @@
 // at -1 holds the number of elements stored
 // on the queue, initially 0.
 //
-queue *newQueue(int size) {
+queue *newQueue() {
   queue *Q = (queue *)malloc(sizeof(queue));
-  Q->elements = (int *)malloc(sizeof(int)*size);
-  Q->head = 0;
+  Q->tail = NULL;
+  Q->head = NULL;
   Q->size = 0;
-  Q->capacity = size;
   return Q;
 }
 
@@ -50,13 +49,17 @@ void increaseQ(queue *Q) {
 // Pushes x onto stack S.
 //
 void enqueue(int x, queue* Q) {
-  if(Q->size == Q->capacity){
-    printf("Queue is full!");
+  node *n = (node *)malloc(sizeof(node));
+  n->data = x;
+  n->next = NULL;
+  if (Q->head == NULL) {
+    Q->head = n;
   }
   else {
-    Q->elements[(Q->head + Q->size) % Q->capacity] = x;
-    increaseQ(Q);
+    Q->tail->next = n;
   }
+  Q->tail = n;
+  increaseQ(Q);
 }
 
 
@@ -67,8 +70,10 @@ void enqueue(int x, queue* Q) {
 //
 int dequeue(queue *Q) {
   decreaseQ(Q);
-  int x = Q->elements[Q->head];
-  Q->head = (Q->head + 1) % Q->capacity;
+  int x = Q->head->data;
+  node *n = Q->head;
+  Q->head = Q->head->next;
+  free(n);
   return x;
 }
 
@@ -77,23 +82,22 @@ int dequeue(queue *Q) {
 // Returns top value of stack S.
 //
 int front(queue *Q) {
-  if (Q->size > 0) {
-    return Q->elements[Q->head];
+  if (Q->head != NULL) {
+    return Q->head->data;
   }
 }
 
 void outputQueue(queue *Q) {
   int i;
-  if (isEmptyQueue(Q)) {
+  if (isEmpty(Q)) {
     printf("[ ]");
   } else {
-    printf("[(%d)", Q->elements[Q->head]);
-    int i = Q->head+1;
-    int j = 1;
-    while (j < Q->size) {
-      printf(" %d", Q->elements[i]);
-      i++;
-      j++;
+    node *n = Q->head;
+    printf("[(%d)", n->data);
+    n = n->next;
+    while (n != NULL) {
+      printf(" %d",n->data);
+      n = n->next;
     }
     printf("]\n");
   }

@@ -3,14 +3,13 @@
 #define _QUEUE_H
 
 typedef struct _queue {
-    int* elements;
+    int * elements;
     int tail;
-    int head;
+    int front;
     int size;
-    int capacity;
 } queue;
 
-queue *newQueue(int size);
+queue *newQueue();
 int isEmptyQueue(queue *Q);
 int sizeQueue(queue *Q);
 void enqueue(int x, queue *Q);
