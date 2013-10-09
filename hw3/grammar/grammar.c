@@ -11,6 +11,7 @@
 
 typedef struct _grammar {
   char ** productions;
+  int lines;
 } grammar;
 
 // readLine
@@ -42,23 +43,23 @@ void readLine(FILE *f, char *line) {
 //
 // Returns an array of the production line strings.
 //
-grammar * readGrammar(FILE *f, int *lines) {
+grammar * readGrammar(FILE *f) {
   int l;
   char line[80];
-  grammar = (grammar *)malloc(sizeof(gammar));
-  grammar->productions = (char **)malloc((*lines)*sizeof(char *));
+  grammar * G = (grammar *)malloc(sizeof(grammar));
 
   // read the number of lines
-  fscanf(f,"%d\n",lines);
+  fscanf(f,"%d\n",&(G->lines));
   // create the array of productions
 
+  G->productions = (char **)malloc((G->lines)*sizeof(char *));
   // read each production line
-  for (l = 0; l < (*lines); l++) {
+  for (l = 0; l < G->lines; l++) {
     readLine(f,line);
-    grammar->productions[l] = copy(line);
+    G->productions[l] = copy(line);
   }
 
-  return grammar;
+  return G;
 }
 
 // production
@@ -66,13 +67,13 @@ grammar * readGrammar(FILE *f, int *lines) {
 // Chooses a random production from an array of productions
 // given by G, those whose left-hand side is the character A.
 //
-char *production(char A, grammar *G, int lines) {
+char *production(char A, grammar *G) {
   int start, end;
   int p;
   // find the starting line of A-productions
-  for (start = 0; start < lines && G->productions[start][0] != A; start++);
+  for (start = 0; start < G->lines && G->productions[start][0] != A; start++);
   // find the line following the A-productions
-  for (end=start; end<lines && G->productions[end][0] == A; end++);
+  for (end=start; end< G->lines && G->productions[end][0] == A; end++);
   // pick a line in that range
   p = rand() % (end - start) + start;
   // return its right-hand side
@@ -101,15 +102,15 @@ int hasUpper(char *s) {
 // one of their productions in G (using "production" procedure
 // above).
 //
-char *replaceAll(char *s, grammar *G, int n) {
+char *replaceAll(char *s, grammar *G) {
   int i;
   char *front, *middle, *back;
   int len = length(s);
   for(i = 0; i < len; i++){
     if (isupper(s[i])) {
       front = substring(s, 0, i - 1);
-      middle = production(s[i], G, n);
-      back = replaceAll(substring(s, i + 1, len-1), G, n);
+      middle = production(s[i], G);
+      back = replaceAll(substring(s, i + 1, len-1), G);
       s = append(append(front, middle), back);
       break;
     }
@@ -134,12 +135,12 @@ int main(int argc, char **argv) {
   } else {
 
     gf = fopen(argv[1],"r");
-    G = readGrammar(gf,&n);
+    G = readGrammar(gf);
     x = argv[2];
 
     printf("%s\n",x);
     while (hasUpper(x)) {
-      x = replaceAll(x,G,n);
+      x = replaceAll(x,G);
       printf("=>%s\n",x);
     };
 
