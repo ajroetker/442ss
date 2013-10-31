@@ -1,6 +1,16 @@
+#include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include "csapp.h"
+
+typedef struct _threadinfo {
+  int whoami;
+  float *img, *omg;
+  int width, height, rows;
+} threadinfo;
+
+typedef void *thread_main_t(void *);
 
 //
 // MATH 442: pgmdo
@@ -55,10 +65,10 @@ void eatLine(FILE *f) {
   while (fgetc(f) != '\n');
 }
 
-void invertImage(float *img, int width, int height){
+void invertImage(float *img, int width, int height, int row_start, int row_end){
   int r, c, i;
   // for each image row
-  for (r=0; r<height; r++) {
+  for (r=row_start; r<row_end; r++) {
     // for each image column
     for (c=0; c<width; c++) {
       i = r * width + c;
@@ -67,10 +77,15 @@ void invertImage(float *img, int width, int height){
   }
 }
 
-void blurImage(float *img, float *omg, int width, int height){
+void *invert(threadinfo *ti) {
+  invertImage(ti->img, ti->width, ti->height, ti->whoami, ti->whoami + ti->rows);
+  return NULL;
+}
+
+void blurImage(float *img, float *omg, int width, int height, int row_start, int row_end){
   int r, c, i;
   // for each image row
-  for (r=0; r<height; r++) {
+  for (r=row_start; r<row_end; r++) {
     // for each image column
     for (c=0; c<width; c++) {
       i = r * width + c;
@@ -78,17 +93,17 @@ void blurImage(float *img, float *omg, int width, int height){
         if (r == 0){
           omg[i] = (4*img[i] + 2*img[i+1]  + 2*img[i+width])/8;
         }
-        else if (r == (height - 1)){
+        else if (r == height - 1){
           omg[i] = (4*img[i] + 2*img[i+1]  + 2*img[i-width])/8;
         } else {
           omg[i] = (5*img[i] + img[i+1] + img[i-width] + img[i+width])/8;
         }
       }
-      else if (c == (width - 1)){
-        if ( r == 0){
+      else if (c == width - 1){
+        if (r == 0){
           omg[i] = (4*img[i] + 2*img[i-1]  + 2*img[i+width])/8;
         }
-        else if (r ==  (height - 1)){
+        else if (r == height - 1){
           omg[i] = (4*img[i] + 2*img[i-1]  + 2*img[i-width])/8;
         } else {
           omg[i] = (5*img[i] + img[i-1] + img[i-width] + img[i+width])/8;
@@ -97,7 +112,7 @@ void blurImage(float *img, float *omg, int width, int height){
       else if (r == 0){
         omg[i] = (5*img[i] + img[i+1] + img[i-1] + img[i+width])/8;
       }
-      else if (r == (height - 1)){
+      else if (r == height - 1){
         omg[i] = (5*img[i] + img[i+1] + img[i-1] + img[i-width])/8;
       }
       else{
@@ -105,6 +120,11 @@ void blurImage(float *img, float *omg, int width, int height){
       }
     }
   }
+}
+
+void *blur(threadinfo *ti) {
+  blurImage(ti->img, ti->omg, ti->width, ti->height, ti->whoami, ti->whoami + ti->rows);
+  return NULL;
 }
 
 // echoASCII
@@ -142,7 +162,7 @@ float *readImage(FILE *inf,  int *width, int *height) {
   fscanf(inf, "%d", width);   // 9 5
   fscanf(inf, "%d", height);
   fscanf(inf, "%d", &max);     // 255
-  img=(float *)malloc((*height)*(*width)*sizeof(float));
+  img=(float *)malloc((*height) * (*width) * sizeof(float));
   // for each image row
   for (r=0; r<(*height); r++) {
     // for each image column
@@ -172,18 +192,24 @@ void usage(char *cmd) {
 // This program accepts three arguments: a processing option
 // ("blur", "invert", or "ascii"), a PGM file name for input,
 // and a text file name for output.  It reads the PGM file and
-// creates an output file with either an appropriate PGM (if 
+// creates an output file with either an appropriate PGM (if
 // one of the first two options are given) or a text file (if
 // the last option is given).
 //
-// Right now, only the "ascii" option works.
 //
 int main(int argc, char **argv) {
-
   // input and output file "handles"
   FILE *inf, *outf;
   float *img, *omg;
   int width, height;
+  int i;
+  int ts = 2;
+
+  pthread_t tid[ts];
+  threadinfo info[ts];
+
+  void *rv;
+
 
   if (argc < 4) {
 
@@ -210,15 +236,46 @@ int main(int argc, char **argv) {
     img = readImage(inf,&width,&height);
     omg=(float *)malloc(height*width*sizeof(float));
     if (strcmp(argv[1],"--blur") == 0) {
-      printf("Blurring image...");
-      blurImage(img, omg, width, height);
+      printf("Blurring image...\n");
+      for (i=0; i<ts; i++) {
+        info[i].whoami = i*(height/ts);
+        if (i == ts - 1) {
+          info[i].rows = height/ts + height % ts;
+        } else {
+          info[i].rows = height/ts;
+        }
+        info[i].width = width;
+        info[i].height = height;
+        info[i].img = img;
+        info[i].omg = omg;
+        Pthread_create(&tid[i],NULL,(thread_main_t *)blur,(void *)&info[i]);
+      }
+      for (i=0; i<ts; i++) {
+        Pthread_join(tid[i],&rv);
+      }
       outPGM(outf, omg, width, height);
       printf("Done!\n");
+      Pthread_exit(NULL);
     } else if (strcmp(argv[1],"--invert") == 0) {
       printf("Inverting image...");
-      invertImage(img, width, height);
+      for (i=0; i<ts; i++) {
+        info[i].whoami = i*(height/ts);
+        if (i == ts - 1) {
+          info[i].rows = height/ts + height % ts;
+        } else {
+          info[i].rows = height/ts;
+        }
+        info[i].width = width;
+        info[i].height = height;
+        info[i].img = img;
+        Pthread_create(&tid[i],NULL,(thread_main_t *)invert,(void *)&info[i]);
+      }
+      for (i=0; i<ts; i++) {
+        Pthread_join(tid[i],&rv);
+      }
       outPGM(outf, img, width, height);
       printf("Done!\n");
+      Pthread_exit(NULL);
     } else if (strcmp(argv[1],"--ascii") == 0) {
       echoASCII(img,outf, width, height);
     } else {
@@ -237,4 +294,5 @@ int main(int argc, char **argv) {
     // return OK
     return 0;
   }
+
 }
