@@ -167,7 +167,7 @@ float *readImage(FILE *inf,  int *width, int *height) {
   for (r=0; r<(*height); r++) {
     // for each image column
     for (c=0; c<(*width); c++) {
-      // read a PGM pixel grey value (from 0 to max)
+       // read a PGM pixel grey value (from 0 to max)
       fscanf(inf,"%d", &pixel);
       img[(r*(*width)) + c] = (float)pixel/(float)max;
     }

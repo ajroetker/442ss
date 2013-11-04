@@ -17,15 +17,17 @@ typedef struct _threadinfo {
   pthread_cond_t * cond;
   int start;
   int rows;
+  int num_threads;
 } threadinfo;
 
 typedef void *thread_main_t(void *);
 
 void show(universe * univ) {
+  int h = univ->height, w = univ->width;
 
-  for (int y = 0; y < univ->height; y++) {
-    for (int x = 0; x < univ->width; x++) {
-      printf( univ->board[y * univ->width + x] ? "@" : " " );
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      printf( univ->board[y * w + x] ? "@" : " " );
     }
     printf("\n");
   }
@@ -33,18 +35,15 @@ void show(universe * univ) {
 }
 
 void evolve(universe * univ, universe * next_gen,  int start, int end){
+  int w = univ->width, h = univ->height;
   for (int y = start; y < end; y++) {
-    for (int x = 0; x < univ->width; x++) {
+    for (int x = 0; x < w; x++) {
       int n = 0;
       for (int j = y - 1; j <= y + 1; j++) {
         for (int i = x - 1; i <= x + 1; i++) {
-          if ( univ->board[(j % univ->height) * univ->width + (i % univ->width)] && !( j == y && i == x )) n++;
+          if ( univ->board[((j+h) % h) * w + ((i+w) % w)] && !( j == y && i == x )) n++;
         }}
-      next_gen->board[y*univ->width + x] = (n == 3 || (n == 2 && univ->board[y * univ->width + x])) ? 1 : 0;
-    }}
-  for (int y = start; y < end; y++) {
-    for (int x = 0; x < univ->width; x++) {
-      univ->board[y * univ->width + x] = next_gen->board[y*univ->width + x];
+      next_gen->board[y*w + x] = (n == 3 || (n == 2 && univ->board[y * w + x])) ? 1 : 0;
     }}
 }
 
@@ -57,8 +56,8 @@ void *game_t(threadinfo * ti) {
     }
     pthread_mutex_lock(ti->mutex);
     *(ti->count) = *(ti->count) + 1;
-    if (*(ti->count) < 4) pthread_cond_wait(ti->cond,ti->mutex);
-    if (*(ti->count) == 4) {
+    if (*(ti->count) < ti->num_threads) pthread_cond_wait(ti->cond,ti->mutex);
+    if (*(ti->count) == ti->num_threads) {
       *(ti->count) = *(ti->count) - 1;
       for (NULL; *(ti->count) > 0; *(ti->count) = *(ti->count) - 1) pthread_cond_signal(ti->cond);}
     pthread_mutex_unlock(ti->mutex);
@@ -111,6 +110,7 @@ int main (int argc, char **argv){
     info[i].universe2 = univ2;
     info[i].count = &count;
     info[i].mutex = &mutex;
+    info[i].num_threads = ts;
     info[i].cond = &all_done;
     info[i].start = i*h/ts;
     info[i].rows = h/ts;
